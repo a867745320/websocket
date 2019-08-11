@@ -1,7 +1,12 @@
 package web.sock.demo;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -12,6 +17,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.*;
 
 /**
  * Created with IDEA
@@ -30,7 +38,7 @@ public class Send {
     private int count = 0;
 
     @GetMapping("/index")
-    public String index(){
+    public String index() {
         return "index";
     }
 
@@ -38,14 +46,14 @@ public class Send {
     @MessageMapping("/send")
     //服务端向浏览器推送地址设置
     @SendTo("/topic/send")
-    public SocketMessage send( SocketMessage message) throws Exception {
+    public SocketMessage send(SocketMessage message) throws Exception {
         message.date = "浏览器消息";
         count++;
         return message;
     }
 
     //由后台发送到浏览器服务
-    @SendTo("/topic/callback")
+    // @SendTo("/topic/callback")
     //定时5秒给页面推一次数据
     @Scheduled(cron="0/1 * * * * ?")
     public Object callback() throws Exception {
@@ -57,4 +65,24 @@ public class Send {
         return null;
     }
 
+    public static void main(String[] args) {
+        System.out.println(Runtime.getRuntime().availableProcessors());
+
+        ScheduledExecutorService newScheduledThreadPool = Executors
+                .newScheduledThreadPool(1);
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                test();
+            }
+        };
+        newScheduledThreadPool.schedule(timerTask, 0, TimeUnit.MILLISECONDS);
+        newScheduledThreadPool.shutdown();
+
+    }
+
+    public static void test() {
+        System.out.println(123);
+    }
 }
